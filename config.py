@@ -1,0 +1,104 @@
+"""
+配置文件，包含所有模型路徑和參數設定
+"""
+
+import os
+from pathlib import Path
+
+# 專案根目錄
+PROJECT_ROOT = Path(os.path.dirname(os.path.abspath(__file__)))
+
+# 資料目錄
+DATA_DIR = PROJECT_ROOT / "data"
+LOGS_DIR = PROJECT_ROOT / "logs"
+MEMORY_DIR = DATA_DIR / "memory"
+VECTOR_DB_DIR = DATA_DIR / "vector_db"
+
+# 確保目錄存在
+for directory in [DATA_DIR, LOGS_DIR, MEMORY_DIR, VECTOR_DB_DIR]:
+    directory.mkdir(parents=True, exist_ok=True)
+
+# 模型配置
+MODELS = {
+    # 語音輸入模型
+    "whisper": {
+        "model_name": "openai/whisper-tiny",
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "language": "auto",  # 自動檢測語言
+    },
+    
+    # 上下文解答模型
+    "context": {
+        "model_name": "google/flan-t5-base",
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "max_length": 512,
+        "temperature": 0.7,
+    },
+    
+    # RAG 檢索生成
+    "rag": {
+        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "generator_model": "google/mt5-base",
+        "vector_db_path": VECTOR_DB_DIR,
+        "top_k": 5,  # 檢索前k個相關文檔
+    },
+    
+    # MCP 工具使用
+    "mcp": {
+        "model_name": "facebook/xlm-roberta-base",
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "mcp_config_path": PROJECT_ROOT / "mcp.json",
+    },
+    
+    # 最終回應整合
+    "response": {
+        "model_name": "nazlicanto/phi-2-persona-chat",
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "max_length": 1024,
+        "temperature": 0.8,
+        "characteristic_path": PROJECT_ROOT / "characteristic.txt",
+    },
+    
+    # 情緒辨識
+    "emotion": {
+        "model_name": "google/mt5-base",  # 假設已微調用於情緒辨識
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "emotions": ["開心", "難過", "生氣", "驚訝", "害怕", "中性"],
+    },
+    
+    # 語音生成
+    "voice": {
+        "model_name": "myshell-ai/OpenVoiceV2",
+        "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+        "speaker_embedding_path": DATA_DIR / "voice_embeddings",
+        "sample_rate": 24000,
+    }
+}
+
+# 記憶配置
+MEMORY_CONFIG = {
+    "max_history": 20,  # 保存的最大對話歷史數量
+    "memory_file": MEMORY_DIR / "conversation_history.json",
+}
+
+# 日誌配置
+LOGGING_CONFIG = {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "log_file": LOGS_DIR / "assistant.log",
+}
+
+# 介面配置
+UI_CONFIG = {
+    "gradio": {
+        "theme": "soft",
+        "title": "AI助理",
+        "description": "具備記憶對話和文件、語音輸入與輸出、MCP工具調用、情緒辨識及風格化回應的AI助理",
+        "port": 7860,
+    },
+    "cli": {
+        "prompt": ">>> ",
+        "welcome_message": "歡迎使用AI助理！輸入 'exit' 或 'quit' 退出。",
+    }
+}

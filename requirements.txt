@@ -1,0 +1,30 @@
+"""
+AI助理專案 - requirements.txt
+包含所有必要的Python套件
+"""
+
+# 基礎套件
+numpy>=1.20.0
+torch>=1.9.0
+transformers>=4.18.0
+gradio>=3.0.0
+
+# 語音處理
+librosa>=0.8.1
+sounddevice>=0.4.4
+soundfile>=0.10.3
+
+# 文本處理
+sentence-transformers>=2.2.0
+langid>=1.1.6
+
+# 向量資料庫
+faiss-cpu>=1.7.0  # 如果有GPU，可以改用faiss-gpu
+
+# PDF處理
+pdfplumber>=0.7.0
+pdf2image>=1.16.0
+
+# 其他工具
+tqdm>=4.62.0
+requests>=2.26.0

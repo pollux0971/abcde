@@ -1,0 +1,178 @@
+{
+  "mcpServers": {
+    "browser-use": {
+      "command": "uvx",
+      "args": ["mcp-server-browser-use@latest"],
+      "env": {
+        "MCP_LLM_PROVIDER": "anthropic",
+        "MCP_LLM_MODEL_NAME": "claude-3-haiku-20240307",
+        "MCP_BROWSER_HEADLESS": "true",
+        "MCP_BROWSER_WINDOW_WIDTH": "1440",
+        "MCP_BROWSER_WINDOW_HEIGHT": "1080",
+        "MCP_AGENT_TOOL_USE_VISION": "true",
+        "MCP_SERVER_LOGGING_LEVEL": "INFO",
+        "MCP_SERVER_LOG_FILE": "./logs/mcp_server_browser_use.log"
+      }
+    },
+    "filesystem": {
+      "command": "uvx",
+      "args": ["@smithery-ai/filesystem@latest"],
+      "env": {
+        "MCP_FILESYSTEM_ROOT_DIR": "./data",
+        "MCP_FILESYSTEM_ALLOW_ABSOLUTE_PATHS": "false",
+        "MCP_FILESYSTEM_ALLOW_PARENT_PATHS": "false",
+        "MCP_SERVER_LOGGING_LEVEL": "INFO",
+        "MCP_SERVER_LOG_FILE": "./logs/mcp_server_filesystem.log"
+      }
+    }
+  },
+  "mcp": {
+    "version": "0.1",
+    "schema": {
+      "tools": [
+        {
+          "name": "run_browser_agent",
+          "description": "執行瀏覽器自動化任務，基於自然語言指令並等待完成。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "string",
+                "description": "主要任務或目標"
+              }
+            },
+            "required": ["task"]
+          },
+          "returns": {
+            "type": "string",
+            "description": "代理提取的最終結果或錯誤訊息"
+          }
+        },
+        {
+          "name": "run_deep_research",
+          "description": "對主題進行深入網路研究，生成報告，並等待完成。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "research_task": {
+                "type": "string",
+                "description": "研究的主題或問題"
+              },
+              "max_parallel_browsers": {
+                "type": "integer",
+                "description": "最大並行瀏覽器數量"
+              }
+            },
+            "required": ["research_task"]
+          },
+          "returns": {
+            "type": "string",
+            "description": "生成的研究報告，Markdown格式"
+          }
+        },
+        {
+          "name": "read_file",
+          "description": "讀取檔案內容",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "檔案路徑"
+              }
+            },
+            "required": ["path"]
+          },
+          "returns": {
+            "type": "string",
+            "description": "檔案內容"
+          }
+        },
+        {
+          "name": "write_file",
+          "description": "寫入檔案內容",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "檔案路徑"
+              },
+              "content": {
+                "type": "string",
+                "description": "要寫入的內容"
+              },
+              "append": {
+                "type": "boolean",
+                "description": "是否附加到檔案末尾而不是覆蓋"
+              }
+            },
+            "required": ["path", "content"]
+          },
+          "returns": {
+            "type": "string",
+            "description": "操作結果"
+          }
+        },
+        {
+          "name": "list_directory",
+          "description": "列出目錄內容",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "目錄路徑"
+              }
+            },
+            "required": ["path"]
+          },
+          "returns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "檔案或目錄名稱"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["file", "directory"],
+                  "description": "項目類型"
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "檔案大小（位元組）"
+                },
+                "modified": {
+                  "type": "string",
+                  "description": "最後修改時間"
+                }
+              }
+            },
+            "description": "目錄內容列表"
+          }
+        },
+        {
+          "name": "create_directory",
+          "description": "創建新目錄",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "目錄路徑"
+              }
+            },
+            "required": ["path"]
+          },
+          "returns": {
+            "type": "string",
+            "description": "操作結果"
+          }
+        }
+      ]
+    }
+  }
+}
