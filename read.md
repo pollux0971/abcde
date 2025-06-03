@@ -85,12 +85,13 @@ pip install -r requirements.txt
 
 4. 下載必要的模型（首次運行時會自動下載）
 ```bash
-python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('openai/whisper-tiny')"
-python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('google/flan-t5-base')"
-python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('google/mt5-base')"
-python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('facebook/xlm-roberta-base')"
+```bash
+python -c "from transformers import WhisperProcessor; WhisperProcessor.from_pretrained('openai/whisper-tiny')"
+python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-base')"
+python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/mt5-base')"
+python -c "from transformers import AutoModel; AutoModel.from_pretrained('xlm-roberta-base')"
 python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('nazlicanto/phi-2-persona-chat')"
-python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 ```
 
 ## 使用方法
