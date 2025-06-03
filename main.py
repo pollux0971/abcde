@@ -37,7 +37,7 @@ def main():
         else:
             logger.info("啟動圖形介面")
             print("啟動圖形介面...")
-            from gradio import GradioInterface
+            from gradio_interface import GradioInterface
             interface = GradioInterface()
             interface.launch(share=args.share)
     except Exception as e:
@@ -66,7 +66,7 @@ def check_environment():
     try:
         import torch
         import transformers
-        import gradio
+        import gradio_interface
         import faiss
         import sentence_transformers
         logger.info("所有必要的Python套件已安裝")
