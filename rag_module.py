@@ -12,7 +12,8 @@ from typing import Dict, Any, List, Optional, Tuple, Union
 from pathlib import Path
 
 # LangChain相關導入
-from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFacePipeline
 from langchain.chains import RetrievalQA
@@ -166,12 +167,15 @@ class RAGModule:
         創建新的FAISS向量存儲
         """
         try:
-            # 正確建立空的 FAISS 向量存儲
+            # 建立一個假文檔
+            dummy_doc = Document(page_content="初始化文檔", metadata={"id": -1, "type": "init"})
             self.vectorstore = FAISS.from_documents(
-                [],
+                [dummy_doc],
                 self.embedding_model
             )
             self.documents = []
+            # 刪除假文檔
+            self.vectorstore.delete([dummy_doc.metadata["id"]])
             logger.info("創建了新的FAISS向量存儲")
             
             # 確保目錄存在
