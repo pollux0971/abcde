@@ -100,9 +100,7 @@ class ResponseModule:
             風格化回應文本
         """
         try:
-            # 如果三種處理均無輸出，返回無法辨識問題
-            if not context_answer and not rag_summary and not mcp_result:
-                return "無法辨識問題"
+            # 只要 query 不為空，就讓 phi-2 生成
             
             # 準備情緒信息
             emotion_info = ""
@@ -196,9 +194,7 @@ class ResponseModule:
             (風格化回應文本, 思考過程字典)
         """
         try:
-            # 如果三種處理均無輸出，返回無法辨識問題
-            if not context_answer and not rag_summary and not mcp_result:
-                return "無法辨識問題", {"理解用戶需求": "無法理解用戶需求"}
+            # 只要 query 不為空，就讓 phi-2 生成
             
             # 準備情緒信息
             emotion_info = ""
