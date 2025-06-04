@@ -89,7 +89,6 @@ pip install -r requirements.txt
 python -c "from transformers import WhisperProcessor; WhisperProcessor.from_pretrained('openai/whisper-tiny')"
 python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-base')"
 python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-small')"
-python -c "from transformers import AutoModelForMaskedLM; AutoModelForMaskedLM.from_pretrained('xlm-roberta-base')"
 python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('nazlicanto/phi-2-persona-chat')"
 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 ```
