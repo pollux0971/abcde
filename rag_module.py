@@ -167,15 +167,12 @@ class RAGModule:
         創建新的FAISS向量存儲
         """
         try:
-            # 建立一個假文檔
-            dummy_doc = Document(page_content="初始化文檔", metadata={"id": -1, "type": "init"})
+            # 嘗試直接建立空的 FAISS 向量存儲
             self.vectorstore = FAISS.from_documents(
-                [dummy_doc],
+                [],
                 self.embedding_model
             )
             self.documents = []
-            # 刪除假文檔
-            self.vectorstore.delete([dummy_doc.metadata["id"]])
             logger.info("創建了新的FAISS向量存儲")
             
             # 確保目錄存在
