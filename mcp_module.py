@@ -1,5 +1,5 @@
 """
-MCP工具使用模組 - 使用Facebook XLM-RoBERTa-base模型解析MCP工具
+MCP工具使用模組
 """
 
 import os
@@ -8,7 +8,7 @@ import torch
 import logging
 from typing import Dict, Any, List, Optional, Tuple, Union
 from pathlib import Path
-from transformers import XLMRobertaForSequenceClassification, XLMRobertaTokenizer
+from transformers import T5ForConditionalGeneration, T5Tokenizer
 
 import config
 from utils import setup_logger
@@ -17,9 +17,6 @@ from utils import setup_logger
 logger = setup_logger("mcp_module", config.LOGGING_CONFIG["level"])
 
 class MCPModule:
-    """
-    使用Facebook XLM-RoBERTa-base模型解析MCP工具，選擇並執行適當工具
-    """
     
     def __init__(self, model_config: Dict[str, Any] = None):
         """
@@ -39,11 +36,8 @@ class MCPModule:
         
         try:
             # 載入模型和分詞器
-            self.tokenizer = XLMRobertaTokenizer.from_pretrained(self.model_name)
-            self.model = XLMRobertaForSequenceClassification.from_pretrained(
-                self.model_name,
-                num_labels=2  # 二分類：是否使用工具
-            )
+            self.tokenizer = T5Tokenizer.from_pretrained(self.model_name)
+            self.model = T5ForConditionalGeneration.from_pretrained(self.model_name)
             self.model.to(self.device)
             
             # 載入MCP配置
