@@ -166,15 +166,11 @@ class RAGModule:
         創建新的FAISS向量存儲
         """
         try:
-            # 創建一個空的向量存儲（需要至少一個文檔來初始化）
-            self.vectorstore = FAISS.from_texts(
-                ["hello world"],
+            # 正確建立空的 FAISS 向量存儲
+            self.vectorstore = FAISS.from_documents(
+                [],
                 self.embedding_model
             )
-            
-            # 刪除初始化文檔
-            self.vectorstore.delete(["hello world"])
-            
             self.documents = []
             logger.info("創建了新的FAISS向量存儲")
             

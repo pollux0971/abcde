@@ -7,7 +7,7 @@
 1. [核心模組](#核心模組)
    - [whisper_module.py - 語音輸入轉文字模組](#whisper_modulepy---語音輸入轉文字模組)
    - [context_module.py - 上下文解答模組](#context_modulepy---上下文解答模組)
-   - [rag_module.py - RAG檢索生成模組](#rag_modulepy---rag檢索生成模組)
+   - [langchain_rag_module.py - LangChain RAG檢索生成模組](#langchain_rag_modulepy---langchain-rag檢索生成模組)
    - [mcp_module.py - MCP工具使用模組](#mcp_modulepy---mcp工具使用模組)
    - [emotion_module.py - 情緒辨識模組](#emotion_modulepy---情緒辨識模組)
    - [response_module.py - 回應整合模組](#response_modulepy---回應整合模組)
@@ -24,6 +24,7 @@
    - [mcp.json - MCP工具配置檔案](#mcpjson---mcp工具配置檔案)
    - [characteristic.txt - 派蒙角色設定檔案](#characteristictxt---派蒙角色設定檔案)
 5. [系統流程圖](#系統流程圖)
+6. [LangChain RAG整合](#langchain-rag整合)
 
 ## 核心模組
 
@@ -51,17 +52,18 @@
 | `generate_answer(self, question, context=None, generate_reasoning=True)` | 根據上下文生成問題的答案和思考邏輯 |
 | `is_question_relevant(self, question, context)` | 判斷問題是否與上下文相關 |
 
-### rag_module.py - RAG檢索生成模組
+### langchain_rag_module.py - LangChain RAG檢索生成模組
 
 #### RAGModule 類別
-使用FAISS向量資料庫和mT5-base模型實現檢索增強生成，從歷史對話、文件和TXT/PDF檔案中檢索相關資訊並生成總結
+使用LangChain框架、FAISS向量資料庫和flan-T5-small模型實現檢索增強生成，從歷史對話、文件和TXT/PDF檔案中檢索相關資訊並生成總結
 
 | 函式名稱 | 函式簡介 |
 | ------- | ------- |
-| `__init__(self, model_config=None)` | 初始化RAG模型 |
-| `_load_or_create_index(self)` | 載入或創建FAISS索引 |
-| `_create_new_index(self)` | 創建新的FAISS索引 |
-| `_save_index(self)` | 保存FAISS索引和文檔 |
+| `__init__(self, model_config=None)` | 初始化LangChain RAG模型 |
+| `_load_or_create_vectorstore(self)` | 載入或創建FAISS向量存儲 |
+| `_create_new_vectorstore(self)` | 創建新的FAISS向量存儲 |
+| `_save_vectorstore(self)` | 保存FAISS向量存儲和文檔 |
+| `_setup_qa_chain(self)` | 設置檢索問答鏈 |
 | `add_document(self, text, metadata=None)` | 將文檔添加到向量資料庫 |
 | `add_conversation(self, conversation)` | 將對話添加到向量資料庫 |
 | `add_file(self, file_path, chunk_size=1000, overlap=200)` | 讀取文件（TXT或PDF）並將其分段添加到向量資料庫 |
@@ -252,7 +254,7 @@ graph TD
     cli.py.CLIInterface.__init__ --> cli.py.CLIInterface._init_modules
     cli.py.CLIInterface._init_modules --> whisper_module.py.WhisperModule.__init__
     cli.py.CLIInterface._init_modules --> context_module.py.ContextModule.__init__
-    cli.py.CLIInterface._init_modules --> rag_module.py.RAGModule.__init__
+    cli.py.CLIInterface._init_modules --> langchain_rag_module.py.RAGModule.__init__
     cli.py.CLIInterface._init_modules --> mcp_module.py.MCPModule.__init__
     cli.py.CLIInterface._init_modules --> emotion_module.py.EmotionModule.__init__
     cli.py.CLIInterface._init_modules --> response_module.py.ResponseModule.__init__
@@ -263,13 +265,13 @@ graph TD
     cli.py.CLIInterface.process_command --> cli.py.CLIInterface._record_voice
     cli.py.CLIInterface.process_command --> cli.py.CLIInterface._add_file
     cli.py.CLIInterface._record_voice --> whisper_module.py.WhisperModule.transcribe_from_microphone
-    cli.py.CLIInterface._add_file --> rag_module.py.RAGModule.add_file
+    cli.py.CLIInterface._add_file --> langchain_rag_module.py.RAGModule.add_file
     
     %% Gradio介面流程
     gradio.py.GradioInterface.__init__ --> gradio.py.GradioInterface._init_modules
     gradio.py.GradioInterface._init_modules --> whisper_module.py.WhisperModule.__init__
     gradio.py.GradioInterface._init_modules --> context_module.py.ContextModule.__init__
-    gradio.py.GradioInterface._init_modules --> rag_module.py.RAGModule.__init__
+    gradio.py.GradioInterface._init_modules --> langchain_rag_module.py.RAGModule.__init__
     gradio.py.GradioInterface._init_modules --> mcp_module.py.MCPModule.__init__
     gradio.py.GradioInterface._init_modules --> emotion_module.py.EmotionModule.__init__
     gradio.py.GradioInterface._init_modules --> response_module.py.ResponseModule.__init__
@@ -283,7 +285,7 @@ graph TD
     %% 輸入處理流程
     cli.py.CLIInterface.process_input --> emotion_module.py.EmotionModule.analyze_input_emotion
     cli.py.CLIInterface.process_input --> context_module.py.ContextModule.generate_answer
-    cli.py.CLIInterface.process_input --> rag_module.py.RAGModule.process_query
+    cli.py.CLIInterface.process_input --> langchain_rag_module.py.RAGModule.process_query
     cli.py.CLIInterface.process_input --> mcp_module.py.MCPModule.process_query
     cli.py.CLIInterface.process_input --> response_module.py.ResponseModule.chain_of_thought_response
     cli.py.CLIInterface.process_input --> emotion_module.py.EmotionModule.add_emotion_tags
@@ -291,7 +293,7 @@ graph TD
     
     gradio.py.GradioInterface.process_input --> emotion_module.py.EmotionModule.analyze_input_emotion
     gradio.py.GradioInterface.process_input --> context_module.py.ContextModule.generate_answer
-    gradio.py.GradioInterface.process_input --> rag_module.py.RAGModule.process_query
+    gradio.py.GradioInterface.process_input --> langchain_rag_module.py.RAGModule.process_query
     gradio.py.GradioInterface.process_input --> mcp_module.py.MCPModule.process_query
     gradio.py.GradioInterface.process_input --> response_module.py.ResponseModule.chain_of_thought_response
     gradio.py.GradioInterface.process_input --> emotion_module.py.EmotionModule.add_emotion_tags
@@ -304,14 +306,14 @@ graph TD
     %% 上下文處理流程
     context_module.py.ContextModule.generate_answer --> context_module.py.ContextModule.is_question_relevant
     
-    %% RAG處理流程
-    rag_module.py.RAGModule.__init__ --> rag_module.py.RAGModule._load_or_create_index
-    rag_module.py.RAGModule.process_query --> rag_module.py.RAGModule.search
-    rag_module.py.RAGModule.process_query --> rag_module.py.RAGModule.generate_summary
-    rag_module.py.RAGModule.add_file --> utils.py.read_text_file
-    rag_module.py.RAGModule.add_file --> utils.py.read_pdf_file
-    rag_module.py.RAGModule.add_file --> utils.py.split_text_into_chunks
-    rag_module.py.RAGModule.add_file --> rag_module.py.RAGModule.add_document
+    %% LangChain RAG處理流程
+    langchain_rag_module.py.RAGModule.__init__ --> langchain_rag_module.py.RAGModule._load_or_create_vectorstore
+    langchain_rag_module.py.RAGModule.__init__ --> langchain_rag_module.py.RAGModule._setup_qa_chain
+    langchain_rag_module.py.RAGModule.process_query --> langchain_rag_module.py.RAGModule.search
+    langchain_rag_module.py.RAGModule.process_query --> langchain_rag_module.py.RAGModule.generate_summary
+    langchain_rag_module.py.RAGModule.add_file --> utils.py.read_text_file
+    langchain_rag_module.py.RAGModule.add_file --> utils.py.read_pdf_file
+    langchain_rag_module.py.RAGModule.add_file --> langchain_rag_module.py.RAGModule.add_document
     
     %% MCP處理流程
     mcp_module.py.MCPModule.__init__ --> mcp_module.py.MCPModule._load_mcp_config
@@ -350,7 +352,7 @@ graph TD
 2. 語音轉文字（如果是語音輸入）
 3. 情緒分析
 4. 上下文解答處理
-5. RAG檢索生成處理
+5. LangChain RAG檢索生成處理
 6. MCP工具使用處理
 7. 回應整合與風格化
 8. 情緒標籤添加
@@ -358,3 +360,118 @@ graph TD
 10. 輸出回應（文字和語音）
 
 這個流程確保了AI助理能夠理解用戶輸入，從多種渠道獲取相關資訊，並生成符合角色設定的回應，同時支援多模態互動。
+
+## LangChain RAG整合
+
+### 從原始RAG模組到LangChain RAG模組的演進
+
+本專案將原有的RAG模組升級為基於LangChain框架的實現，主要變更包括：
+
+1. **模型升級**：從mT5-base升級為更輕量的flan-T5-small，提高推理速度
+2. **框架整合**：引入LangChain框架，提供更靈活的RAG開發環境
+3. **API兼容**：保持與原始RAG模組相同的公共API，確保無縫替換
+4. **組件化設計**：利用LangChain的模塊化設計，便於擴展和自定義
+
+### LangChain RAG模組架構
+
+```mermaid
+graph TD
+    subgraph LangChain框架
+        HuggingFaceEmbeddings["HuggingFaceEmbeddings<br>(all-MiniLM-L6-v2)"]
+        HuggingFacePipeline["HuggingFacePipeline<br>(flan-T5-small)"]
+        FAISS["FAISS向量存儲"]
+        RecursiveCharacterTextSplitter["文本分割器"]
+        RetrievalQA["檢索問答鏈"]
+        PromptTemplate["提示模板"]
+    end
+    
+    RAGModule --> HuggingFaceEmbeddings
+    RAGModule --> HuggingFacePipeline
+    RAGModule --> FAISS
+    RAGModule --> RecursiveCharacterTextSplitter
+    RAGModule --> RetrievalQA
+    
+    RetrievalQA --> PromptTemplate
+    RetrievalQA --> FAISS
+    RetrievalQA --> HuggingFacePipeline
+    
+    FAISS --> HuggingFaceEmbeddings
+    
+    subgraph 外部接口
+        add_document["add_document()"]
+        add_conversation["add_conversation()"]
+        add_file["add_file()"]
+        search["search()"]
+        generate_summary["generate_summary()"]
+        process_query["process_query()"]
+        get_file_statistics["get_file_statistics()"]
+        clear_file_data["clear_file_data()"]
+    end
+    
+    RAGModule --> add_document
+    RAGModule --> add_conversation
+    RAGModule --> add_file
+    RAGModule --> search
+    RAGModule --> generate_summary
+    RAGModule --> process_query
+    RAGModule --> get_file_statistics
+    RAGModule --> clear_file_data
+    
+    add_file --> RecursiveCharacterTextSplitter
+    add_file --> add_document
+    search --> FAISS
+    generate_summary --> HuggingFacePipeline
+    process_query --> search
+    process_query --> generate_summary
+```
+
+### 核心組件對照表
+
+| 原始RAG模組 | LangChain RAG模組 |
+|------------|-----------------|
+| SentenceTransformer | HuggingFaceEmbeddings |
+| FAISS索引 | FAISS向量存儲 |
+| MT5生成器 | HuggingFacePipeline (flan-T5-small) |
+| 手動文本分割 | RecursiveCharacterTextSplitter |
+| 手動檢索與生成 | RetrievalQA鏈 |
+
+### 主要優勢
+
+1. **模塊化設計**：LangChain提供高度模塊化的組件，便於替換和擴展
+2. **性能優化**：flan-T5-small比MT5-base更輕量，提高推理速度
+3. **統一接口**：標準化的檢索和生成接口，簡化開發流程
+4. **豐富的工具生態**：可利用LangChain豐富的工具和連接器擴展功能
+5. **提示工程優化**：內置提示模板系統，便於優化和管理提示
+
+### 配置更新
+
+在config.py中，RAG模組的配置已更新為：
+
+```python
+"rag": {
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+    "generator_model": "google/flan-t5-small",  # 更改為flan-T5-small
+    "vector_db_path": VECTOR_DB_DIR,
+    "top_k": 5,  # 檢索前k個相關文檔
+}
+```
+
+### 依賴項更新
+
+需要添加以下依賴項到requirements.txt：
+
+```
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-huggingface>=0.0.5
+langchain-text-splitters>=0.0.1
+```
+
+### 未來擴展方向
+
+1. **多模型支持**：輕鬆切換到其他模型，如Llama、Mistral等
+2. **結構化輸出**：利用LangChain的輸出解析器獲取結構化輸出
+3. **代理功能**：集成LangChain的代理功能，實現更複雜的任務處理
+4. **向量存儲擴展**：支持更多向量數據庫，如Chroma、Pinecone等
+5. **記憶管理優化**：利用LangChain的記憶組件優化長期記憶管理
