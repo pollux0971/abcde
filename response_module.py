@@ -47,7 +47,6 @@ class ResponseModule:
                 tokenizer=self.model_name,
                 device=0 if self.device == "cuda" else -1,
                 trust_remote_code=True,
-                cache_dir=model_config["cache_dir"],
                 torch_dtype=torch.float16
             )
 
@@ -149,7 +148,6 @@ class ResponseModule:
                 outputs = self.generator(
                     prompt,
                     max_length=self.max_length,
-                    temperature=self.temperature,
                     do_sample=True,
                     top_p=0.9,
                     num_return_sequences=1,
@@ -240,7 +238,6 @@ class ResponseModule:
             outputs = self.generator(
                 prompt,
                 max_length=self.max_length,
-                temperature=self.temperature,
                 do_sample=True,
                 top_p=0.9,
                 num_return_sequences=1,
