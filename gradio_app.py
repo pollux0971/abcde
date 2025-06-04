@@ -441,11 +441,11 @@ class GradioInterface:
             # 記錄開始時間
             start_time = time.time()
             
-        # 添加用戶消息到對話歷史
-        user_message = {"role": "user", "content": text_input, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
-        self.conversation_history.append(user_message)
-        # 更新聊天界面 (Gradio格式)
-        self.chat_history_pairs.append([text_input, None])
+            # 添加用戶消息到對話歷史
+            user_message = {"role": "user", "content": text_input, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
+            self.conversation_history.append(user_message)
+            # 更新聊天界面 (Gradio格式)
+            self.chat_history_pairs.append([text_input, None])
             
             # 分析輸入情緒
             emotion_distribution = self.emotion_module.analyze_input_emotion(text_input)
@@ -488,12 +488,12 @@ class GradioInterface:
                 speaker_embedding
             )
             
-        # 添加助理消息到對話歷史
-        assistant_message = {"role": "assistant", "content": response, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
-        self.conversation_history.append(assistant_message)
-        # 更新聊天界面 (Gradio格式)
-        if self.chat_history_pairs:
-            self.chat_history_pairs[-1][1] = response
+            # 添加助理消息到對話歷史
+            assistant_message = {"role": "assistant", "content": response, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
+            self.conversation_history.append(assistant_message)
+            # 更新聊天界面 (Gradio格式)
+            if self.chat_history_pairs:
+                self.chat_history_pairs[-1][1] = response
             
             # 計算處理時間
             end_time = time.time()
