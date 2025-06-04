@@ -23,6 +23,8 @@ pdf2image>=1.16.0
 # 其他工具
 tqdm>=4.62.0
 requests>=2.26.0
+protobuf>=3.19.0
+sentencepiece>=0.1.96
 
 # LangChain相關依賴
 langchain>=0.1.0
