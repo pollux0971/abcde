@@ -79,8 +79,6 @@ class RAGModule:
                 model=model,
                 tokenizer=tokenizer,
                 max_length=512,
-                temperature=0.7,
-                top_p=0.9,
                 device=0 if self.device == "cuda" else -1
             )
             
@@ -176,7 +174,7 @@ class RAGModule:
             index = faiss.IndexFlatL2(d)
 
             # Create an empty docstore
-            from langchain.docstore import InMemoryDocstore
+            from langchain_community.docstore.in_memory import InMemoryDocstore
             docstore = InMemoryDocstore({})
 
             # Create an empty index_to_docstore_id mapping
