@@ -54,6 +54,8 @@ class GradioInterface:
         # 初始化對話記憶
         self.memory_manager = MemoryManager()
         self.conversation_history = []
+        # Gradio Chatbot 顯示格式: [[user, assistant], ...]
+        self.chat_history_pairs = []
         
         # 初始化狀態
         self.current_speaker = None
@@ -439,13 +441,11 @@ class GradioInterface:
             # 記錄開始時間
             start_time = time.time()
             
-            # 添加用戶消息到對話歷史
-            user_message = {"role": "user", "content": text_input, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
-            self.conversation_history.append(user_message)
-            
-            # 更新聊天界面
-            chatbot_history = self.chatbot.copy() if self.chatbot else []
-            chatbot_history.append({"role": "user", "content": text_input})
+        # 添加用戶消息到對話歷史
+        user_message = {"role": "user", "content": text_input, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
+        self.conversation_history.append(user_message)
+        # 更新聊天界面 (Gradio格式)
+        self.chat_history_pairs.append([text_input, None])
             
             # 分析輸入情緒
             emotion_distribution = self.emotion_module.analyze_input_emotion(text_input)
@@ -488,12 +488,12 @@ class GradioInterface:
                 speaker_embedding
             )
             
-            # 添加助理消息到對話歷史
-            assistant_message = {"role": "assistant", "content": response, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
-            self.conversation_history.append(assistant_message)
-            
-            # 更新聊天界面
-            chatbot_history[-1] = {"role": "assistant", "content": response}
+        # 添加助理消息到對話歷史
+        assistant_message = {"role": "assistant", "content": response, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")}
+        self.conversation_history.append(assistant_message)
+        # 更新聊天界面 (Gradio格式)
+        if self.chat_history_pairs:
+            self.chat_history_pairs[-1][1] = response
             
             # 計算處理時間
             end_time = time.time()
@@ -508,7 +508,7 @@ class GradioInterface:
             status = "處理完成"
             
             return (
-                chatbot_history,
+                self.chat_history_pairs.copy(),
                 "",
                 str(audio_output_path),
                 {"label": emotion_distribution},
@@ -519,7 +519,7 @@ class GradioInterface:
         except Exception as e:
             logger.error(f"處理輸入時發生錯誤: {str(e)}")
             return (
-                self.chatbot,
+                self.chat_history_pairs.copy(),
                 text_input,
                 None,
                 None,
@@ -592,9 +592,9 @@ class GradioInterface:
         """
         # 清除對話歷史
         self.conversation_history = []
-        
+        self.chat_history_pairs = []
         return (
-            None,
+            [],
             "",
             None,
             "0.0 秒",
