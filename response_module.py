@@ -194,8 +194,6 @@ class ResponseModule:
             (風格化回應文本, 思考過程字典)
         """
         try:
-            # 只要 query 不為空，就讓 phi-2 生成
-            
             # 準備情緒信息
             emotion_info = ""
             if emotion_distribution:
