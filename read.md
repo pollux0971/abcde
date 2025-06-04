@@ -17,7 +17,7 @@
 
 ### 2. 智能理解與回應
 - **上下文解答**：使用Google flan-T5-base模型根據上下文進行問題解答
-- **檢索增強生成**：使用FAISS、miniLM-v2和mT5-base實現檢索增強生成
+- **檢索增強生成**：使用LangChain框架、FAISS向量資料庫和flan-T5-small實現檢索增強生成
 - **文件理解**：支援TXT和PDF文件導入，並能回答相關問題
 
 ### 3. 情感與個性
@@ -29,13 +29,14 @@
 - **MCP工具調用**：支援瀏覽器操作和檔案系統操作
 - **記憶管理**：保存對話歷史，支援長期記憶
 - **多語言支援**：支援多種語言的輸入與輸出
+- **LangChain整合**：利用LangChain框架提供更靈活的RAG開發環境
 
 ## 系統架構
 
 ### 核心模組
 1. **whisper_module.py** - 語音輸入轉文字模組
 2. **context_module.py** - 上下文解答模組
-3. **rag_module.py** - RAG檢索生成模組
+3. **langchain_rag_module.py** - 基於LangChain的RAG檢索生成模組
 4. **mcp_module.py** - MCP工具使用模組
 5. **emotion_module.py** - 情緒辨識模組
 6. **response_module.py** - 最終回應整合模組
@@ -85,11 +86,10 @@ pip install -r requirements.txt
 
 4. 下載必要的模型（首次運行時會自動下載）
 ```bash
-```bash
 python -c "from transformers import WhisperProcessor; WhisperProcessor.from_pretrained('openai/whisper-tiny')"
 python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-base')"
-python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/mt5-base')"
-python -c "from transformers import AutoModel; AutoModel.from_pretrained('xlm-roberta-base')"
+python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-small')"
+python -c "from transformers import AutoModelForMaskedLM; AutoModelForMaskedLM.from_pretrained('xlm-roberta-base')"
 python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('nazlicanto/phi-2-persona-chat')"
 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 ```
@@ -168,15 +168,56 @@ python main.py --share
 
 2. **上下文解答**：使用flan-T5-base根據轉錄文字生成上下文相關的解答和思考邏輯，若問題片面則不輸出。
 
-3. **RAG檢索生成**：使用FAISS從歷史對話和文件中檢索相關資訊，MT5-base將檢索結果生成總結，若無相關內容則不輸出。
+3. **RAG檢索生成**：使用LangChain框架和FAISS從歷史對話和文件中檢索相關資訊，**flan-T5-small**將檢索結果生成總結，若無相關內容則不輸出。
 
-4. **MCP工具使用**：使用XLM-RoBERTa-base解析轉錄文字和mcp.json，選擇並執行適當工具，返回結果或"正在執行[工具名稱]"，若無法解決則不輸出。
+4. **MCP工具使用**：使用**flan-T5-base**解析轉錄文字和mcp.json，選擇並執行適當工具，返回結果或"正在執行[工具名稱]"，若無法解決則不輸出。
 
 5. **最終回應整合**：使用Phi-2-persona-chat整合上下文解答、RAG總結、工具結果及輸入情緒標籤，根據characteristic.txt中指定的人物設定生成風格化文字回應，透過鏈式思考確保回應符合人設。若三種處理均無輸出，回應"無法辨識問題"。
 
 6. **情緒辨識**：使用MT5-base-finetuned-emotion細粒化分析生成後的文字，生成輸入情緒標籤。
 
 7. **語音生成**：使用OpenVoice v2將帶情緒標籤的回應轉為語音，根據標籤調整語調，支持聲音克隆和多語言輸出。
+
+## LangChain RAG整合
+
+### 整合優勢
+- **靈活的組件化架構**：LangChain提供模塊化設計，便於擴展和自定義
+- **豐富的檢索選項**：支持多種檢索策略和向量存儲
+- **簡化的提示工程**：提供結構化的提示模板
+- **多模型支持**：可輕鬆切換不同的語言模型
+- **性能優化**：flan-T5-small比原先的MT5-base更輕量，提高推理速度
+
+### 使用方法
+LangChain RAG模組與原有RAG模組保持相同的API，可以直接替換使用：
+
+```python
+from langchain_rag_module import RAGModule
+
+# 初始化RAG模組
+rag_module = RAGModule()
+
+# 添加文檔
+rag_module.add_document("這是一個測試文檔", {"type": "test"})
+
+# 添加文件
+rag_module.add_file("/path/to/document.pdf")
+
+# 處理查詢
+result = rag_module.process_query("我的問題是什麼？")
+```
+
+### 配置說明
+在`config.py`中，RAG模組的配置已更新為使用flan-T5-small：
+
+```python
+"rag": {
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
+    "generator_model": "google/flan-t5-small",  # 更改為flan-T5-small
+    "vector_db_path": VECTOR_DB_DIR,
+    "top_k": 5,  # 檢索前k個相關文檔
+}
+```
 
 ## 自定義與擴展
 
@@ -188,6 +229,13 @@ python main.py --share
 
 ### 調整模型參數
 在`config.py`中修改各模型的參數設定，如溫度、最大長度等。
+
+### 擴展LangChain功能
+利用LangChain的擴展性，可以輕鬆添加：
+- 新的檢索策略
+- 不同的向量存儲
+- 自定義的提示模板
+- 其他語言模型
 
 ## 常見問題
 
@@ -202,8 +250,14 @@ python main.py --share
 3. **RAG檢索結果不準確**
    - 添加更多相關文件
    - 調整`config.py`中的top_k參數
+   - 嘗試調整LangChain的檢索參數
 
-4. **MCP工具執行失敗**
+4. **LangChain相關錯誤**
+   - 確保已安裝所有LangChain相關依賴
+   - 檢查`requirements.txt`是否包含最新的依賴項
+   - 確認模型路徑和配置是否正確
+
+5. **MCP工具執行失敗**
    - 檢查`mcp.json`配置是否正確
    - 確認相應的服務是否可用
 
@@ -218,6 +272,7 @@ python main.py --share
 - Gradio
 - FAISS
 - Sentence Transformers
+- LangChain
 
 ## 聯絡方式
 

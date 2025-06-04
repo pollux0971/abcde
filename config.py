@@ -46,7 +46,7 @@ MODELS = {
     
     # MCP 工具使用
     "mcp": {
-        "model_name": "facebook/xlm-roberta-base",
+        "model_name": "google/flan-t5-base",  # 改為 flan-t5-base
         "device": "cuda" if os.environ.get("USE_CUDA", "0") == "1" else "cpu",
         "mcp_config_path": PROJECT_ROOT / "mcp.json",
     },
