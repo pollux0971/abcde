@@ -65,11 +65,11 @@ class RAGModule:
         try:
             # 載入嵌入模型
             self.embedding_model = HuggingFaceEmbeddings(
-                model_name=self.embedding_model_name,
-                model_kwargs={"device": self.device},
-                cache_dir=model_config["cache_dir"]  # Add cache_dir
-            )
-            
+            model_name=self.embedding_model_name,
+            model_kwargs={"device": self.device},
+            cache_folder=str(model_config["cache_dir"])
+        )
+                    
             # 載入生成模型
             tokenizer = AutoTokenizer.from_pretrained(
                 self.generator_model_name,
