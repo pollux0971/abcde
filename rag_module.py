@@ -66,12 +66,19 @@ class RAGModule:
             # 載入嵌入模型
             self.embedding_model = HuggingFaceEmbeddings(
                 model_name=self.embedding_model_name,
-                model_kwargs={"device": self.device}
+                model_kwargs={"device": self.device},
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
             )
             
-            # 載入生成模型 (flan-T5-small)
-            tokenizer = AutoTokenizer.from_pretrained(self.generator_model_name)
-            model = AutoModelForSeq2SeqLM.from_pretrained(self.generator_model_name)
+            # 載入生成模型
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.generator_model_name,
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
+            )
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                self.generator_model_name,
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
+            )
             model.to(self.device)
             
             pipe = pipeline(

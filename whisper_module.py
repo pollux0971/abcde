@@ -40,8 +40,14 @@ class WhisperModule:
         
         try:
             # 載入模型和處理器
-            self.processor = WhisperProcessor.from_pretrained(self.model_name)
-            self.model = WhisperForConditionalGeneration.from_pretrained(self.model_name)
+            self.processor = WhisperProcessor.from_pretrained(
+                self.model_name,
+                cache_dir=model_config["cache_dir"]
+                )
+            self.model = WhisperForConditionalGeneration.from_pretrained(
+                self.model_name,
+                cache_dir=model_config["cache_dir"]
+                )
             self.model.to(self.device)
             logger.info(f"Whisper模型載入成功，使用設備: {self.device}")
         except Exception as e:

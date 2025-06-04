@@ -35,10 +35,18 @@ class EmotionModule:
         
         logger.info(f"正在載入情緒辨識模型: {self.model_name}")
         
+        # In emotion_module.py, within the __init__ method
         try:
             # 載入模型和分詞器
-            self.tokenizer = MT5Tokenizer.from_pretrained("google/mt5-base", legacy=True)
-            self.model = MT5ForConditionalGeneration.from_pretrained(self.model_name)
+            self.tokenizer = MT5Tokenizer.from_pretrained(
+                "google/mt5-base",
+                legacy=True,
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
+            )
+            self.model = MT5ForConditionalGeneration.from_pretrained(
+                self.model_name,
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
+            )
             self.model.to(self.device)
             logger.info(f"情緒辨識模型載入成功，使用設備: {self.device}")
         except Exception as e:

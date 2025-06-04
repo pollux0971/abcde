@@ -23,30 +23,39 @@ class ResponseModule:
     def __init__(self, model_config: Dict[str, Any] = None):
         """
         初始化回應整合模型
-    
+
         Args:
             model_config: 模型配置，若為None則使用config.py中的默認配置
         """
         if model_config is None:
             model_config = config.MODELS["response"]
-    
+
         self.model_name = model_config["model_name"]
         self.device = model_config["device"]
         self.max_length = model_config["max_length"]
         self.temperature = model_config["temperature"]
         self.characteristic_path = Path(model_config["characteristic_path"])
-    
+
         logger.info(f"正在載入回應整合模型: {self.model_name}")
-    
+
+        # In response_module.py, within the __init__ method
         try:
             # 載入模型和分詞器
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
-            self.model = AutoModelForCausalLM.from_pretrained(self.model_name, trust_remote_code=True)
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_name,
+                trust_remote_code=True,
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
+            )
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.model_name,
+                trust_remote_code=True,
+                cache_dir=model_config["cache_dir"]  # Add cache_dir
+            )
             self.model.to(self.device)
-    
+
             # 載入人物設定
             self.characteristic = self._load_characteristic()
-    
+
             logger.info(f"回應整合模型載入成功，使用設備: {self.device}")
         except Exception as e:
             logger.error(f"載入回應整合模型時發生錯誤: {str(e)}")

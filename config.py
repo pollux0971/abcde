@@ -7,6 +7,8 @@ from pathlib import Path
 
 # 專案根目錄
 PROJECT_ROOT = Path(os.path.dirname(os.path.abspath(__file__)))
+MODEL_CACHE_DIR = PROJECT_ROOT / "model_cache"
+MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # 資料目錄
 DATA_DIR = PROJECT_ROOT / "data"
@@ -20,59 +22,53 @@ for directory in [DATA_DIR, LOGS_DIR, MEMORY_DIR, VECTOR_DB_DIR]:
 
 # 模型配置
 MODELS = {
-    # 語音輸入模型
     "whisper": {
         "model_name": "openai/whisper-tiny",
-        "device": "cuda",  # 只能使用GPU
-        "language": "auto",  # 自動檢測語言
+        "device": "cuda",
+        "language": "auto",
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
-    
-    # 上下文解答模型
     "context": {
         "model_name": "google/flan-t5-base",
-        "device": "cuda",  # 只能使用GPU
+        "device": "cuda",
         "max_length": 512,
         "temperature": 0.7,
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
-    
-    # RAG 檢索生成
     "rag": {
         "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-        "device": "cuda",  # 只能使用GPU
+        "device": "cuda",
         "generator_model": "google/mt5-base",
         "vector_db_path": VECTOR_DB_DIR,
-        "top_k": 5,  # 檢索前k個相關文檔
+        "top_k": 5,
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
-    
-    # MCP 工具使用
     "mcp": {
         "model_name": "google/flan-t5-base",
-        "device": "cuda",  # 只能使用GPU
+        "device": "cuda",
         "mcp_config_path": PROJECT_ROOT / "mcp.json",
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
-    
-    # 最終回應整合
     "response": {
         "model_name": "nazlicanto/phi-2-persona-chat",
-        "device": "cuda",  # 只能使用GPU
+        "device": "cuda",
         "max_length": 1024,
         "temperature": 0.8,
         "characteristic_path": PROJECT_ROOT / "characteristic.txt",
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
-    
-    # 情緒辨識
     "emotion": {
-        "model_name": "google/mt5-base",  # 假設已微調用於情緒辨識
-        "device": "cuda",  # 只能使用GPU
+        "model_name": "google/mt5-base",
+        "device": "cuda",
         "emotions": ["開心", "難過", "生氣", "驚訝", "害怕", "中性"],
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
-    
-    # 語音生成
     "voice": {
         "model_name": "myshell-ai/OpenVoiceV2",
-        "device": "cuda",  # 只能使用GPU
+        "device": "cuda",
         "speaker_embedding_path": DATA_DIR / "voice_embeddings",
         "sample_rate": 24000,
+        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     }
 }
 
