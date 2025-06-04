@@ -6,7 +6,7 @@ import torch
 import logging
 from typing import Dict, Any, List, Optional, Tuple, Union
 from pathlib import Path
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import pipeline
 
 import config
 from utils import setup_logger, read_text_file
@@ -40,18 +40,16 @@ class ResponseModule:
 
         # In response_module.py, within the __init__ method
         try:
-            # 載入模型和分詞器
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
+            # 初始化 text-generation pipeline
+            self.generator = pipeline(
+                "text-generation",
+                model=self.model_name,
+                tokenizer=self.model_name,
+                device=0 if self.device == "cuda" else -1,
                 trust_remote_code=True,
-                cache_dir=model_config["cache_dir"]  # Add cache_dir
+                cache_dir=model_config["cache_dir"],
+                torch_dtype=torch.float16
             )
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                trust_remote_code=True,
-                cache_dir=model_config["cache_dir"]  # Add cache_dir
-            )
-            self.model.to(self.device)
 
             # 載入人物設定
             self.characteristic = self._load_characteristic()
@@ -148,29 +146,27 @@ class ResponseModule:
 ### 風格化回應:
 """
             
-            # 生成回應
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-            
             with torch.no_grad():
-                outputs = self.model.generate(
-                    inputs.input_ids,
+                # 使用 pipeline 生成回應
+                outputs = self.generator(
+                    prompt,
                     max_length=self.max_length,
                     temperature=self.temperature,
                     do_sample=True,
                     top_p=0.9,
-                    num_return_sequences=1
+                    num_return_sequences=1,
+                    return_full_text=False
                 )
             
-            # 解碼輸出
-            full_output = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            # 提取生成文本
+            full_output = outputs[0]["generated_text"]
             
             # 提取風格化回應部分
             response_marker = "### 風格化回應:"
             if response_marker in full_output:
                 response = full_output.split(response_marker)[1].strip()
             else:
-                # 如果無法提取，使用整個輸出
-                response = full_output
+                response = full_output.strip()
             
             logger.info(f"成功生成風格化回應: {response[:50]}...")
             return response
@@ -246,26 +242,22 @@ class ResponseModule:
 ### 風格化回應:
 """
             
-            # 生成回應
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+            # 使用 pipeline 生成回應
+            outputs = self.generator(
+                prompt,
+                max_length=self.max_length,
+                temperature=self.temperature,
+                do_sample=True,
+                top_p=0.9,
+                num_return_sequences=1,
+                return_full_text=False
+            )
             
-            with torch.no_grad():
-                outputs = self.model.generate(
-                    inputs.input_ids,
-                    max_length=self.max_length,
-                    temperature=self.temperature,
-                    do_sample=True,
-                    top_p=0.9,
-                    num_return_sequences=1
-                )
-            
-            # 解碼輸出
-            full_output = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            # 提取生成文本
+            full_output = outputs[0]["generated_text"]
             
             # 提取思考過程
             thought_process = {}
-            
-            # 提取各個思考步驟
             thought_markers = [
                 "1. 理解用戶需求:", 
                 "2. 分析可用資訊:", 
@@ -286,8 +278,7 @@ class ResponseModule:
             if response_marker in full_output:
                 response = full_output.split(response_marker)[1].strip()
             else:
-                # 如果無法提取，使用整個輸出
-                response = full_output
+                response = full_output.strip()
             
             logger.info(f"成功生成鏈式思考回應: {response[:50]}...")
             return response, thought_process

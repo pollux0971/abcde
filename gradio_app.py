@@ -211,7 +211,6 @@ class GradioInterface:
                     self.audio_input = gr.Audio(
                         label="語音輸入",
                         type="numpy",
-                        source="microphone",
                         scale=2
                     )
                 
@@ -327,8 +326,7 @@ class GradioInterface:
                 # 上傳參考音頻
                 self.voice_upload = gr.Audio(
                     label="上傳參考音頻",
-                    type="filepath",
-                    source="upload"
+                    type="filepath"
                 )
                 
                 # 說話者名稱
