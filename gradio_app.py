@@ -188,9 +188,9 @@ class GradioInterface:
                     label="對話歷史",
                     height=500,
                     show_label=True,
-                    elem_id="chatbot"
+                    elem_id="chatbot",
+                    type='messages'
                 )
-                
                 # 思考過程顯示
                 self.thinking_box = gr.Textbox(
                     label="思考過程",
@@ -210,7 +210,7 @@ class GradioInterface:
                     
                     self.audio_input = gr.Audio(
                         label="語音輸入",
-                        type="microphone",
+                        type="numpy",
                         source="microphone",
                         scale=2
                     )
@@ -447,7 +447,7 @@ class GradioInterface:
             
             # 更新聊天界面
             chatbot_history = self.chatbot.copy() if self.chatbot else []
-            chatbot_history.append([text_input, None])
+            chatbot_history.append({"role": "user", "content": text_input})
             
             # 分析輸入情緒
             emotion_distribution = self.emotion_module.analyze_input_emotion(text_input)
@@ -495,7 +495,7 @@ class GradioInterface:
             self.conversation_history.append(assistant_message)
             
             # 更新聊天界面
-            chatbot_history[-1][1] = response
+            chatbot_history[-1] = {"role": "assistant", "content": response}
             
             # 計算處理時間
             end_time = time.time()
@@ -560,8 +560,8 @@ class GradioInterface:
             status = "正在處理語音輸入..."
             
             # 將語音轉為文字
-            audio_array = audio_input[1]  # (樣本率, 音頻數據)
-            sample_rate = audio_input[0]
+            audio_array = audio_input # (樣本率, 音頻數據)
+            sample_rate = 16000
             
             transcription = self.whisper_module.transcribe_audio(
                 audio_array=audio_array,
