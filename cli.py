@@ -38,26 +38,7 @@ class CLIInterface:
         """
         logger.info("初始化命令列介面")
         
-        # 創建臨時目錄
-        self.temp_dir = Path(tempfile.mkdtemp())
-        self.audio_dir = self.temp_dir / "audio"
-        self.upload_dir = self.temp_dir / "uploads"
-        self.audio_dir.mkdir(exist_ok=True)
-        self.upload_dir.mkdir(exist_ok=True)
-        
-        # 初始化模組
-        self._init_modules()
-        
-        # 初始化對話記憶
-        self.memory_manager = MemoryManager()
-        self.conversation_history = []
-        
-        # 初始化狀態
-        self.current_speaker = None
-        self.show_thinking = False
-        self.autoplay_audio = True
-        
-        # 設置顏色代碼
+        # 設置顏色代碼 (必須先設置，因為 _init_modules 會用到)
         self.colors = {
             "reset": "\033[0m",
             "bold": "\033[1m",
@@ -67,6 +48,25 @@ class CLIInterface:
             "error": "\033[91m",  # 紅色
             "thinking": "\033[90m"  # 灰色
         }
+
+        # 創建臨時目錄
+        self.temp_dir = Path(tempfile.mkdtemp())
+        self.audio_dir = self.temp_dir / "audio"
+        self.upload_dir = self.temp_dir / "uploads"
+        self.audio_dir.mkdir(exist_ok=True)
+        self.upload_dir.mkdir(exist_ok=True)
+
+        # 初始化模組
+        self._init_modules()
+
+        # 初始化對話記憶
+        self.memory_manager = MemoryManager()
+        self.conversation_history = []
+
+        # 初始化狀態
+        self.current_speaker = None
+        self.show_thinking = False
+        self.autoplay_audio = True
     
     def _init_modules(self):
         """
