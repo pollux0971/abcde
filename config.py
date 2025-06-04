@@ -54,7 +54,7 @@ MODELS = {
         "device": "cuda",
         "max_length": 512,  # 適配 Qwen3-4B，根據需求調整
         "temperature": 0.7,  # 保持原有的生成多樣性
-        "characteristic_path": "c:/Users/Admin/Desktop/assistant/characteristic.txt"  # 更新為正確路徑
+        "characteristic_path": "characteristic.txt"
     },
     "emotion": {
         "model_name": "google/mt5-base",
