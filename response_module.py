@@ -1,5 +1,5 @@
 """
-回應整合模組 - 使用Phi-2-persona-chat模型整合處理結果並生成風格化回應
+回應整合模組 - 使用 Qwen3-4B 模型整合處理結果並生成風格化回應
 """
 
 import torch
@@ -16,7 +16,7 @@ logger = setup_logger("response_module", config.LOGGING_CONFIG["level"])
 
 class ResponseModule:
     """
-    使用Phi-2-persona-chat模型整合三種處理結果，根據人物設定生成風格化文字回應
+    使用 Qwen3-4B 模型整合三種處理結果，根據人物設定生成風格化文字回應
     透過鏈式思考（Chain-of-Thought）確保人設一致性
     """
     
@@ -38,7 +38,6 @@ class ResponseModule:
 
         logger.info(f"正在載入回應整合模型: {self.model_name}")
 
-        # In response_module.py, within the __init__ method
         try:
             # 初始化 text-generation pipeline
             self.generator = pipeline(
@@ -47,7 +46,8 @@ class ResponseModule:
                 tokenizer=self.model_name,
                 device=0 if self.device == "cuda" else -1,
                 trust_remote_code=True,
-                torch_dtype=torch.float16
+                torch_dtype=torch.bfloat16,  # Qwen3-4B 使用 bfloat16 提高效率
+                model_kwargs={"attn_implementation": "flash_attention_2"}  # 啟用 FlashAttention-2 優化
             )
 
             # 載入人物設定
@@ -99,28 +99,26 @@ class ResponseModule:
             風格化回應文本
         """
         try:
-            # 只要 query 不為空，就讓 phi-2 生成
-            
             # 準備情緒信息
             emotion_info = ""
             if emotion_distribution:
-                # 找出主要情緒
                 main_emotion = max(emotion_distribution.items(), key=lambda x: x[1])
                 emotion_info = f"用戶情緒: {main_emotion[0]}，強度: {main_emotion[1]:.2f}"
             
             # 準備對話歷史
             history_text = ""
             if conversation_history:
-                # 只使用最近的幾條對話
                 recent_history = conversation_history[-5:] if len(conversation_history) > 5 else conversation_history
                 for message in recent_history:
                     role = message.get("role", "")
                     content = message.get("content", "")
                     history_text += f"{role}: {content}\n"
             
-            # 構建提示
-            prompt = f"""### 人物設定
+            # 構建提示，適配 Qwen3-4B 的多語言和指令遵循能力
+            prompt = f"""<|im_start|>system
 {self.characteristic}
+
+你是一個基於 Qwen3-4B 的 AI 助手，需根據以下信息生成符合人物設定的風格化回應，並確保回應符合多語言能力和上下文一致性。
 
 ### 對話歷史
 {history_text}
@@ -141,17 +139,17 @@ class ResponseModule:
 4. 確保人設一致性: 
 
 ### 風格化回應:
-"""
+<|im_end|>"""
             
             with torch.no_grad():
-                # 使用 pipeline 生成回應
                 outputs = self.generator(
                     prompt,
-                    max_length=self.max_length,
+                    max_new_tokens=self.max_length,  # Qwen3 使用 max_new_tokens 控制生成長度
                     do_sample=True,
                     top_p=0.9,
-                    num_return_sequences=1,
-                    return_full_text=False
+                    temperature=self.temperature,
+                    pad_token_id=self.generator.tokenizer.pad_token_id,
+                    eos_token_id=self.generator.tokenizer.eos_token_id
                 )
             
             # 提取生成文本
@@ -195,23 +193,23 @@ class ResponseModule:
             # 準備情緒信息
             emotion_info = ""
             if emotion_distribution:
-                # 找出主要情緒
                 main_emotion = max(emotion_distribution.items(), key=lambda x: x[1])
                 emotion_info = f"用戶情緒: {main_emotion[0]}，強度: {main_emotion[1]:.2f}"
             
             # 準備對話歷史
             history_text = ""
             if conversation_history:
-                # 只使用最近的幾條對話
                 recent_history = conversation_history[-5:] if len(conversation_history) > 5 else conversation_history
                 for message in recent_history:
                     role = message.get("role", "")
                     content = message.get("content", "")
                     history_text += f"{role}: {content}\n"
             
-            # 構建提示
-            prompt = f"""### 人物設定
+            # 構建提示，適配 Qwen3-4B
+            prompt = f"""<|im_start|>system
 {self.characteristic}
+
+你是一個基於 Qwen3-4B 的 AI 助手，需根據以下信息生成符合人物設定的風格化回應，並確保回應符合多語言能力和上下文一致性。
 
 ### 對話歷史
 {history_text}
@@ -232,16 +230,16 @@ class ResponseModule:
 4. 確保人設一致性: 
 
 ### 風格化回應:
-"""
+<|im_end|>"""
             
-            # 使用 pipeline 生成回應
             outputs = self.generator(
                 prompt,
-                max_length=self.max_length,
+                max_new_tokens=self.max_length,
                 do_sample=True,
                 top_p=0.9,
-                num_return_sequences=1,
-                return_full_text=False
+                temperature=self.temperature,
+                pad_token_id=self.generator.tokenizer.pad_token_id,
+                eos_token_id=self.generator.tokenizer.eos_token_id
             )
             
             # 提取生成文本
@@ -261,8 +259,7 @@ class ResponseModule:
                     start_idx = full_output.find(marker) + len(marker)
                     end_idx = full_output.find(thought_markers[i+1]) if i < len(thought_markers) - 1 else full_output.find("### 風格化回應:")
                     if end_idx != -1:
-                        thought = full_output[start_idx:end_idx].strip()
-                        thought_process[marker.strip(":")] = thought
+                        thought_process[marker.strip(":")] = full_output[start_idx:end_idx].strip()
             
             # 提取風格化回應部分
             response_marker = "### 風格化回應:"

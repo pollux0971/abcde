@@ -50,12 +50,11 @@ MODELS = {
         "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
     "response": {
-        "model_name": "nazlicanto/phi-2-persona-chat",
+        "model_name": "Qwen/Qwen3-4B",  # 更新為 Qwen3-4B
         "device": "cuda",
-        "max_length": 1024,
-        "temperature": 0.8,
-        "characteristic_path": PROJECT_ROOT / "characteristic.txt",
-        "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
+        "max_length": 512,  # 適配 Qwen3-4B，根據需求調整
+        "temperature": 0.7,  # 保持原有的生成多樣性
+        "characteristic_path": "path/to/characteristic.txt"  # 保持不變
     },
     "emotion": {
         "model_name": "google/mt5-base",

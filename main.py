@@ -62,17 +62,20 @@ def check_environment():
         logger.warning(f"MCP配置文件不存在: {config.MODELS['mcp']['mcp_config_path']}")
         print(f"警告: MCP配置文件不存在: {config.MODELS['mcp']['mcp_config_path']}")
     
-    # 檢查必要的Python套件
+    # 檢查必要的 Python 套件
     try:
         import torch
         import transformers
         import gradio_app
         import faiss
         import sentence_transformers
-        logger.info("所有必要的Python套件已安裝")
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        # 測試載入 Qwen3-4B
+        AutoModelForCausalLM.from_pretrained('Qwen/Qwen3-4B', trust_remote_code=True)
+        logger.info("所有必要的 Python 套件已安裝")
     except ImportError as e:
-        logger.error(f"缺少必要的Python套件: {str(e)}")
-        print(f"錯誤: 缺少必要的Python套件: {str(e)}")
+        logger.error(f"缺少必要的 Python 套件: {str(e)}")
+        print(f"錯誤: 缺少必要的 Python 套件: {str(e)}")
         print("請安裝所有必要的套件: pip install -r requirements.txt")
         sys.exit(1)
 
