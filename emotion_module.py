@@ -37,7 +37,7 @@ class EmotionModule:
         
         try:
             # 載入模型和分詞器
-            self.tokenizer = MT5Tokenizer.from_pretrained(self.model_name)
+            self.tokenizer = MT5Tokenizer.from_pretrained("google/mt5-base", legacy=True)
             self.model = MT5ForConditionalGeneration.from_pretrained(self.model_name)
             self.model.to(self.device)
             logger.info(f"情緒辨識模型載入成功，使用設備: {self.device}")
