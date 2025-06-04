@@ -167,15 +167,34 @@ class RAGModule:
         創建新的FAISS向量存儲
         """
         try:
-            # 嘗試直接建立空的 FAISS 向量存儲
-            self.vectorstore = FAISS.from_documents(
-                [],
-                self.embedding_model
+            # Get the dimension from the embedding model
+            dummy_embedding = self.embedding_model.embed_documents(["dummy"])[0]
+            d = len(dummy_embedding)
+            
+            # Create an empty FAISS index with the correct dimension
+            import faiss
+            index = faiss.IndexFlatL2(d)
+            
+            # Create an empty docstore
+            from langchain.docstore import InMemoryDocstore
+            docstore = InMemoryDocstore({})
+            
+            # Create an empty index_to_docstore_id mapping
+            index_to_docstore_id = {}
+            
+            # Create the FAISS vector store
+            from langchain_community.vectorstores.faiss import FAISS
+            self.vectorstore = FAISS(
+                embedding_function=self.embedding_model,
+                index=index,
+                docstore=docstore,
+                index_to_docstore_id=index_to_docstore_id
             )
+            
             self.documents = []
             logger.info("創建了新的FAISS向量存儲")
             
-            # 確保目錄存在
+            # Ensure the directory exists
             self.vector_db_path.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             logger.error(f"創建新的FAISS向量存儲時發生錯誤: {str(e)}")
