@@ -97,27 +97,15 @@ class MCPModule:
     def should_use_tool(self, query: str) -> bool:
         """
         判斷是否應該使用MCP工具
-        
-        Args:
-            query: 用戶查詢
-            
-        Returns:
-            是否應該使用工具的布爾值
         """
         try:
-            # 編碼輸入
-            inputs = self.tokenizer(query, return_tensors="pt").to(self.device)
-            
-            # 模型推論
+            prompt = f"這句話需要用工具嗎？{query} 回答：是或否。"
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             with torch.no_grad():
-                outputs = self.model(**inputs)
-            
-            # 獲取預測結果
-            logits = outputs.logits
-            probabilities = torch.softmax(logits, dim=1)
-            use_tool = probabilities[0, 1].item() > 0.5
-            
-            logger.info(f"查詢 '{query}' 是否使用工具: {use_tool}")
+                output_ids = self.model.generate(**inputs, max_length=5)
+            answer = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
+            use_tool = "是" in answer
+            logger.info(f"查詢 '{query}' 是否使用工具: {use_tool} (模型回答: {answer})")
             return use_tool
         except Exception as e:
             logger.error(f"判斷是否使用工具時發生錯誤: {str(e)}")
