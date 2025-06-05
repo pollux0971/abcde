@@ -1,7 +1,7 @@
 # 基礎套件
 numpy>=1.20.0
 torch>=1.9.0
-transformers>=4.18.0
+transformers>=4.26.0
 gradio>=3.0.0
 
 # 語音處理
