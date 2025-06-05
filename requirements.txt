@@ -33,9 +33,3 @@ langchain-community>=0.0.10
 langchain-huggingface>=0.0.5
 langchain-text-splitters>=0.0.1
 
-# 建構工具
-build
-cmake
-ninja
-wheel
-flash-attn --no-build-isolation
