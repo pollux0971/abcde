@@ -67,8 +67,10 @@
 
 1. 克隆專案
 ```bash
-git clone https://github.com/yourusername/ai-assistant-project.git
-cd ai-assistant-project
+git init
+git remote add pollux https://github.com/pollux0971/abcde.git
+git clone https://github.com/pollux0971/abcde.git
+cd abcde
 ```
 
 2. 創建虛擬環境（可選但推薦）
@@ -77,20 +79,14 @@ python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # 或
 venv\Scripts\activate  # Windows
+#或
+conda create -n abcde python=3.10
 ```
 
 3. 安裝依賴
 ```bash
 pip install -r requirements.txt
-```
-
-4. 下載必要的模型（首次運行時會自動下載）
-```bash
-python -c "from transformers import WhisperProcessor; WhisperProcessor.from_pretrained('openai/whisper-tiny')"
-python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-base')"
-python -c "from transformers import AutoModelForSeq2SeqLM; AutoModelForSeq2SeqLM.from_pretrained('google/flan-t5-small')"
-python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('nazlicanto/phi-2-persona-chat')"
-python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+conda install flash-attn -y
 ```
 
 ## 使用方法
@@ -171,7 +167,7 @@ python main.py --share
 
 4. **MCP工具使用**：使用**flan-T5-base**解析轉錄文字和mcp.json，選擇並執行適當工具，返回結果或"正在執行[工具名稱]"，若無法解決則不輸出。
 
-5. **最終回應整合**：使用Phi-2-persona-chat整合上下文解答、RAG總結、工具結果及輸入情緒標籤，根據characteristic.txt中指定的人物設定生成風格化文字回應，透過鏈式思考確保回應符合人設。若三種處理均無輸出，回應"無法辨識問題"。
+5. **最終回應整合**：使用qwen3整合上下文解答、RAG總結、工具結果及輸入情緒標籤，根據characteristic.txt中指定的人物設定生成風格化文字回應，透過鏈式思考確保回應符合人設。若三種處理均無輸出，回應"無法辨識問題"。
 
 6. **情緒辨識**：使用MT5-base-finetuned-emotion細粒化分析生成後的文字，生成輸入情緒標籤。
 
