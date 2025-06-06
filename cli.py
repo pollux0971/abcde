@@ -32,11 +32,12 @@ class CLIInterface:
     提供AI助理的命令列介面，支援文字輸入輸出、語音互動和文件處理
     """
     
-    def __init__(self):
+    def __init__(self, enable_mcp: bool = False):
         """
         初始化命令列介面和所有模組
         """
         logger.info("初始化命令列介面")
+        self.enable_mcp = enable_mcp
         
         # 設置顏色代碼 (必須先設置，因為 _init_modules 會用到)
         self.colors = {
@@ -88,9 +89,12 @@ class CLIInterface:
             self.rag_module = RAGModule()
             print(f"{self.colors['system']}✓ RAG檢索生成模組已載入{self.colors['reset']}")
             
-            # MCP工具使用模組
-            self.mcp_module = MCPModule()
-            print(f"{self.colors['system']}✓ MCP工具使用模組已載入{self.colors['reset']}")
+            if self.enable_mcp:
+                # MCP工具使用模組
+                self.mcp_module = MCPModule()
+                print(f"{self.colors['system']}✓ MCP工具使用模組已載入{self.colors['reset']}")
+            else:
+                print(f"{self.colors['system']}✓ MCP工具使用模組已禁用{self.colors['reset']}")
             
             # 情緒辨識模組
             self.emotion_module = EmotionModule()

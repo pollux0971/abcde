@@ -35,11 +35,15 @@ class GradioInterface:
     整合所有模組功能，提供語音輸入輸出、文件上傳、對話記憶等功能
     """
     
-    def __init__(self):
+    def __init__(self, enable_mcp: bool = False):
         """
         初始化Gradio介面和所有模組
+        
+        Args:
+            enable_mcp: 是否啟用MCP工具使用模組
         """
         logger.info("初始化Gradio介面")
+        self.enable_mcp = enable_mcp
         
         # 創建臨時目錄
         self.temp_dir = Path(tempfile.mkdtemp())
@@ -63,36 +67,48 @@ class GradioInterface:
         
         # 創建Gradio介面
         self._create_interface()
-    
+
     def _init_modules(self):
         """
         初始化所有AI模組
         """
         try:
             logger.info("初始化AI模組")
+            print("正在初始化AI模組，請稍候...")
             
             # 語音輸入模組
             self.whisper_module = WhisperModule()
+            print("✓ 語音輸入模組已載入")
             
             # 上下文解答模組
             self.context_module = ContextModule()
+            print("✓ 上下文解答模組已載入")
             
             # RAG檢索生成模組
             self.rag_module = RAGModule()
+            print("✓ RAG檢索生成模組已載入")
             
-            # MCP工具使用模組
-            self.mcp_module = MCPModule()
+            if self.enable_mcp:
+                # MCP工具使用模組
+                self.mcp_module = MCPModule()
+                print("✓ MCP工具使用模組已載入")
+            else:
+                print("✓ MCP工具使用模組已禁用")
             
             # 情緒辨識模組
             self.emotion_module = EmotionModule()
+            print("✓ 情緒辨識模組已載入")
             
             # 回應整合模組
             self.response_module = ResponseModule()
+            print("✓ 回應整合模組已載入")
             
             # 語音生成模組
             self.voice_module = VoiceModule()
+            print("✓ 語音生成模組已載入")
             
             logger.info("所有AI模組初始化完成")
+
         except Exception as e:
             logger.error(f"初始化AI模組時發生錯誤: {str(e)}")
             raise

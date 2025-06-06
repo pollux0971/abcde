@@ -21,6 +21,7 @@ def main():
     parser = argparse.ArgumentParser(description="AI助理")
     parser.add_argument("--cli", action="store_true", help="使用命令列介面")
     parser.add_argument("--share", action="store_true", help="分享Gradio介面（僅在使用圖形介面時有效）")
+    parser.add_argument("--enable-mcp", action="store_true", help="啟用MCP功能")
     args = parser.parse_args()
     
     try:
@@ -32,13 +33,13 @@ def main():
             logger.info("啟動命令列介面")
             print("啟動命令列介面...")
             from cli import CLIInterface
-            interface = CLIInterface()
+            interface = CLIInterface(enable_mcp=args.enable_mcp)
             interface.run()
         else:
             logger.info("啟動圖形介面")
             print("啟動圖形介面...")
             from gradio_app import GradioInterface
-            interface = GradioInterface()
+            interface = GradioInterface(enable_mcp=args.enable_mcp)
             interface.launch(share=args.share)
     except Exception as e:
         logger.error(f"啟動程式時發生錯誤: {str(e)}")

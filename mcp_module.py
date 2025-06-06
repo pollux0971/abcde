@@ -21,9 +21,6 @@ class MCPModule:
     def __init__(self, model_config: Dict[str, Any] = None):
         """
         初始化MCP模型
-        
-        Args:
-            model_config: 模型配置，若為None則使用config.py中的默認配置
         """
         if model_config is None:
             model_config = config.MODELS["mcp"]
@@ -34,27 +31,29 @@ class MCPModule:
         
         logger.info(f"正在載入MCP模型: {self.model_name}")
         
-        # In mcp_module.py, within the __init__ method
         try:
             # 載入模型和分詞器
             self.tokenizer = T5Tokenizer.from_pretrained(
                 self.model_name,
-                cache_dir=model_config["cache_dir"]  # Add cache_dir
+                cache_dir=model_config["cache_dir"]
             )
             self.model = T5ForConditionalGeneration.from_pretrained(
                 self.model_name,
-                cache_dir=model_config["cache_dir"]  # Add cache_dir
+                cache_dir=model_config["cache_dir"]
             )
             self.model.to(self.device)
             
             # 載入MCP配置
             self.mcp_config = self._load_mcp_config()
             
+            # 生成工具功能映射
+            self.tool_function_map = self._generate_tool_function_map()
+            
             logger.info(f"MCP模型載入成功，使用設備: {self.device}")
         except Exception as e:
             logger.error(f"載入MCP模型時發生錯誤: {str(e)}")
             raise
-    
+
     def _load_mcp_config(self) -> Dict[str, Any]:
         """
         載入MCP配置文件
@@ -76,6 +75,35 @@ class MCPModule:
             logger.error(f"載入MCP配置文件時發生錯誤: {str(e)}")
             return {}
     
+    def _generate_tool_function_map(self) -> Dict[str, List[str]]:
+        """
+        生成工具名稱到功能列表的映射
+        
+        Returns:
+            工具功能映射字典
+        """
+        try:
+            tool_map = {}
+            tools = self.mcp_config.get("mcp", {}).get("schema", {}).get("tools", [])
+            
+            for tool in tools:
+                tool_name = tool.get("name", "")
+                # 從描述中提取主要功能
+                description = tool.get("description", "")
+                # 從參數中提取額外功能上下文
+                parameters = tool.get("parameters", {}).get("properties", {})
+                param_functions = [param_def.get("description", "") for param_def in parameters.values()]
+                
+                # 合併描述和參數描述作為功能列表
+                functions = [description] + [f for f in param_functions if f]
+                tool_map[tool_name] = functions
+                
+            logger.info(f"生成工具功能映射: {tool_map}")
+            return tool_map
+        except Exception as e:
+            logger.error(f"生成工具功能映射時發生錯誤: {str(e)}")
+            return {}
+
     def _get_available_tools(self) -> List[Dict[str, Any]]:
         """
         獲取可用的MCP工具列表
@@ -97,9 +125,23 @@ class MCPModule:
     def should_use_tool(self, query: str) -> bool:
         """
         判斷是否應該使用MCP工具
+        
+        Args:
+            query: 用戶查詢
+            
+        Returns:
+            是否應使用工具的布林值
         """
         try:
-            prompt = f"這句話需要用工具嗎？{query} 回答：是或否。"
+            # 構建包含工具功能描述的 prompt
+            tool_descriptions = "\n".join([
+                f"工具 {name}: {', '.join(functions)}"
+                for name, functions in self.tool_function_map.items()
+            ])
+            prompt = (
+                f"以下是可用工具及其功能：\n{tool_descriptions}\n\n"
+                f"這句話需要用工具嗎？查詢：{query}\n回答：是或否。"
+            )
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             with torch.no_grad():
                 output_ids = self.model.generate(**inputs, max_length=5)
@@ -122,22 +164,28 @@ class MCPModule:
             選擇的工具配置，若無適合工具則返回None
         """
         try:
-            # 獲取可用工具
             tools = self._get_available_tools()
             if not tools:
                 logger.warning("沒有可用的MCP工具")
                 return None
             
-            # 計算每個工具與查詢的相關性分數
             tool_scores = []
             for tool in tools:
-                # 構建工具描述
-                tool_desc = f"{tool.get('name', '')}: {tool.get('description', '')}"
+                tool_name = tool.get("name", "")
+                # 從功能映射中獲取功能描述
+                functions = self.tool_function_map.get(tool_name, [])
+                tool_desc = f"{tool_name}: {', '.join(functions)}"
+                
+                # 構建 prompt
+                prompt = (
+                    f"查詢：{query}\n"
+                    f"工具描述：{tool_desc}\n"
+                    f"這個工具適合這個查詢嗎？返回相關性分數（0到1）。"
+                )
                 
                 # 編碼輸入
                 inputs = self.tokenizer(
-                    query, 
-                    tool_desc, 
+                    prompt,
                     return_tensors="pt",
                     padding=True,
                     truncation=True
