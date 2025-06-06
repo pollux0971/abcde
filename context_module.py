@@ -88,6 +88,8 @@ class ContextModule:
                 return "", None
             
             # 生成答案
+            if not isinstance(input_text, str):
+                raise ValueError("Input text must be a string.")
             inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
             
             with torch.no_grad():
@@ -149,6 +151,9 @@ class ContextModule:
             
             input_text = f"上下文:\n{context_text}\n\n問題: {question}\n\n這個問題與上下文相關嗎? 回答'是'或'否':"
             
+            # 確保輸入格式正確
+            if not isinstance(input_text, str):
+                raise ValueError("Input text must be a string.")
             inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
             
             with torch.no_grad():

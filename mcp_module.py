@@ -142,7 +142,14 @@ class MCPModule:
                 f"以下是可用工具及其功能：\n{tool_descriptions}\n\n"
                 f"這句話需要用工具嗎？查詢：{query}\n回答：是或否。"
             )
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+            if not isinstance(prompt, str):
+                raise ValueError("Prompt must be a string.")
+            inputs = self.tokenizer(
+                prompt,
+                return_tensors="pt",
+                padding=True,
+                truncation=True
+            ).to(self.device)
             with torch.no_grad():
                 output_ids = self.model.generate(**inputs, max_length=5)
             answer = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)

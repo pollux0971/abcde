@@ -91,6 +91,8 @@ class EmotionModule:
             input_text = f"分析情緒: {text}"
             
             # 編碼輸入
+            if not isinstance(input_text, str):
+                raise ValueError("Input text must be a string.")
             inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
             
             # 模型推論
