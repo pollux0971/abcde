@@ -114,11 +114,14 @@ class ResponseModule:
                     content = message.get("content", "")
                     history_text += f"{role}: {content}\n"
             
-            # 構建提示，適配 Qwen3-4B 的多語言和指令遵循能力
+            # 載入人物設定
+            characteristic = read_text_file(self.characteristic_path)
+            
+            # 構建提示，適配 Llama3.1 8B Instruct
             prompt = f"""<|im_start|>system
-{self.characteristic}
+{characteristic}
 
-你是一個基於 Qwen3-4B 的 AI 助手，需根據以下信息生成符合人物設定的風格化回應，並確保回應符合多語言能力和上下文一致性。
+你是一個基於 Llama3.1 8B Instruct 的 AI 助手，需根據以下信息生成符合人物設定的風格化回應，並確保回應符合多語言能力和上下文一致性。
 
 ### 對話歷史
 {history_text}
@@ -132,25 +135,19 @@ class ResponseModule:
 3. 工具使用: {mcp_result or '無適用工具'}
 4. {emotion_info}
 
-### 思考過程
-1. 理解用戶需求: 
-2. 分析可用資訊: 
-3. 確定回應風格: 
-4. 確保人設一致性: 
-
 ### 風格化回應:
 <|im_end|>"""
             
-            with torch.no_grad():
-                outputs = self.generator(
-                    prompt,
-                    max_new_tokens=self.max_length,  # Qwen3 使用 max_new_tokens 控制生成長度
-                    do_sample=True,
-                    top_p=0.9,
-                    temperature=self.temperature,
-                    pad_token_id=self.generator.tokenizer.pad_token_id,
-                    eos_token_id=self.generator.tokenizer.eos_token_id
-                )
+            outputs = self.generator(
+                prompt,
+                max_new_tokens=self.max_length,
+                do_sample=True,
+                top_p=0.9,
+                temperature=self.temperature,
+                pad_token_id=self.generator.tokenizer.pad_token_id,
+                eos_token_id=self.generator.tokenizer.eos_token_id,
+                disable_safety_filter=True  # 關閉安全過濾
+            )
             
             # 提取生成文本
             full_output = outputs[0]["generated_text"]
