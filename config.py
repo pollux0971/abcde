@@ -52,7 +52,6 @@ MODELS = {
     "response": {
         "model_name": "llama3.1-8b-instruct",  # 更新為 Llama3.1 8B Instruct
         "device": "cuda",
-        "max_length": 512,  # 適配 Llama3.1 8B Instruct，根據需求調整
         "temperature": 0.7,  # 保持原有的生成多樣性
         "characteristic_path": "characteristic.txt",
         "disable_safety_filter": True  # 關閉安全過濾

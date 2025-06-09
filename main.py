@@ -71,8 +71,8 @@ def check_environment():
         import faiss
         import sentence_transformers
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        # 測試載入 Qwen3-4B
-        AutoModelForCausalLM.from_pretrained('Qwen/Qwen3-4B', trust_remote_code=True)
+        # 測試載入 Llama 3.1 8B Instruct
+        AutoModelForCausalLM.from_pretrained('meta-llama/Meta-Llama-3.1-8B-Instruct', trust_remote_code=True)
         logger.info("所有必要的 Python 套件已安裝")
     except ImportError as e:
         logger.error(f"缺少必要的 Python 套件: {str(e)}")

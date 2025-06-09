@@ -1,7 +1,10 @@
 # 基礎套件
 numpy>=1.20.0
 torch>=1.9.0
-transformers>=4.26.0
+transformers>=4.36.0  # 更新版本以支援最新的Llama模型
+accelerator>=0.21.0  # 加入以支援Llama模型的加速
+flash-attn>=2.3.0  # 支援Flash Attention 2
+bitsandbytes>=0.41.0  # 支援量化功能
 gradio>=3.0.0
 
 # 語音處理
@@ -32,4 +35,7 @@ langchain>=0.1.0
 langchain-community>=0.0.10
 langchain-huggingface>=0.0.5
 langchain-text-splitters>=0.0.1
+
+# Llama模型支援
+safetensors>=0.4.0  # 支援Llama模型的權重格式
 
