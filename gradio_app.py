@@ -479,7 +479,7 @@ class GradioInterface:
             mcp_result = self.mcp_module.process_query(text_input)
             
             # 生成最終回應
-            response, thought_process = self.response_module.chain_of_thought_response(
+            response, thought_process = self.response_module.generate_response(
                 text_input,
                 context_answer,
                 rag_summary,
