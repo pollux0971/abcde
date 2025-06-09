@@ -50,9 +50,8 @@ MODELS = {
         "cache_dir": MODEL_CACHE_DIR,  # Add cache_dir
     },
     "response": {
-        "model_name": "Qwen/Qwen3-4B",  # 更新為 Qwen3-4B
+        "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct",  # 更新為 Llama 3.1 8B Instruct
         "device": "cuda",
-        "max_length": 512,  # 適配 Qwen3-4B，根據需求調整
         "temperature": 0.7,  # 保持原有的生成多樣性
         "characteristic_path": "characteristic.txt"
     },
